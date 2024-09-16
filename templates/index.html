@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notepad Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+
+        #file_name,
+        #file_content {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        #file_name {
+            height: 40px;
+        }
+
+        #file_content {
+            height: 300px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: rgb(61, 104, 61);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5%;
+        }
+
+        button:hover {
+            background-color: green;
+        }
+
+        #status_message {
+            margin-top: 10px;
+            font-size: 14px;
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Notepad Tracker</h2>
+
+    <input type="text" id="file_name" placeholder="Enter your file name (for e.g., note)" />
+    <textarea id="file_content" oninput="autoSave()" placeholder="Start typing here..."></textarea>
+    <button id="new_file_btn">New File</button>
+    <div id="status_message">Status: Ready</div>
+
+    <script>
+        let timeout = null;
+        const fileNameInput = document.getElementById('file_name');
+        const contentArea = document.getElementById('file_content');
+        const statusMessage = document.getElementById('status_message');
+
+        function autoSave() {
+            const fileName = fileNameInput.value;
+            const content = contentArea.value;
+
+            if (timeout) {
+                clearTimeout(timeout);
+            }
+
+            if (!fileName || !content) {
+                statusMessage.innerText = 'Error: Invalid file name or empty content';
+                return;
+            }
+
+            timeout = setTimeout(function () {
+                fetch('/auto_save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `file_name=${encodeURIComponent(fileName)}&content=${encodeURIComponent(content)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        statusMessage.innerText = 'Status: Changes auto-saved!';
+                    } else {
+                        statusMessage.innerText = 'Error: ' + data.error;
+                    }
+                })
+                .catch(() => {
+                    statusMessage.innerText = 'Error auto-saving changes.';
+                });
+            }, 500);
+        }
+    </script>
+</body>
+
+</html>
