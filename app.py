@@ -3,7 +3,6 @@ import os
 import git
 import threading
 import platform
-import re
 
 restricted_paths = [
     # Windows
