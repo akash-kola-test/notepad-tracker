@@ -14,7 +14,7 @@
             background-color: #f7f7f7;
         }
 
-        #file_name,
+        #file_path,
         #file_content {
             width: 100%;
             padding: 10px;
@@ -22,7 +22,7 @@
             font-size: 16px;
         }
 
-        #file_name {
+        #file_path {
             height: 40px;
         }
 
@@ -48,6 +48,32 @@
             font-size: 14px;
             color: green;
         }
+
+        .ball {
+            border: 1px solid black;
+            color: black;
+            background-color: black;
+            width: 2px;
+            height: 2px;
+            display: inline-block;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+        0% {
+            width: 0px;
+            height: 0px;
+        }
+        50% {
+            width: 2px;   /* Increase width */
+            height: 2px;  /* Increase height */
+        }
+        100% {
+            width: 0px;
+            height: 0px;  /* Return to original size */
+        }
+    }
     </style>
 </head>
 
@@ -55,22 +81,34 @@
 
     <h2>Notepad Tracker</h2>
 
-    <input type="text" id="file_name" placeholder="Enter your file name (for e.g., note)" />
+    {% if platform == "Windows" %}
+    <input type="text" id="file_path" value="C:\Users\datag\Desktop\notepad_files\example_note.txt" placeholder="Enter your new file path (for e.g., C:\note)" />
+    {% else %}
+    <input type="text" id="file_path" value="~/notepad_files/example.txt" placeholder="Enter your new file path (for e.g., /root/note)" />
+    {% endif %}
     <textarea id="file_content" oninput="autoSave()" placeholder="Start typing here..."></textarea>
+
     <button id="new_file_btn">New File</button>
     <div id="status_message">Status: Ready</div>
 
     <script>
         let timeout = null;
-        const fileNameInput = document.getElementById('file_name');
+        const fileNameInput = document.getElementById('file_path');
         const contentArea = document.getElementById('file_content');
         const statusMessage = document.getElementById('status_message');
+        const newFile = document.getElementById('new_file_btn');
+
+        newFile.addEventListener("click", () => {
+            fileNameInput.value = "{{ platform }}" == "Windows" ? "C:\\Users\\datag\\Desktop\\notepad_files" : "~/notepad_files/";
+            contentArea.value = "";
+        })
 
         function autoSave() {
             const fileName = fileNameInput.value;
             const content = contentArea.value;
 
             if (timeout) {
+                statusMessage.innerHTML = "Status: <span class='ball'></span> <span class='ball'></span> <span class='ball'></span>";
                 clearTimeout(timeout);
             }
 
@@ -85,7 +123,7 @@
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: `file_name=${encodeURIComponent(fileName)}&content=${encodeURIComponent(content)}`
+                    body: `file_path=${encodeURIComponent(fileName)}&content=${encodeURIComponent(content)}`
                 })
                 .then(response => response.json())
                 .then(data => {
